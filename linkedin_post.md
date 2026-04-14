@@ -53,7 +53,9 @@ The orchestrator LLM reads the data and decides *at runtime* which analyses to s
 
 Safe work procedures, well programs, emissions reports, regulatory submissions — these have hard quality requirements. First drafts never pass.
 
-The evaluator-optimizer pattern automates the review-revise cycle: generate → evaluate against defined criteria → improve → repeat until PASS. Direct O&G application: generating safe work procedures for H2S confined space entry and iterating until every OSHA PSM requirement and company golden rule is explicitly covered.
+The evaluator-optimizer pattern automates the review-revise cycle: generate → evaluate against defined criteria → improve → repeat until PASS. We tested it on three HSE scenarios: hot work welding near H2S, confined space tank entry, and nitrogen pressure testing to 3,000 psi.
+
+The evaluator checked each draft against 7 HSE golden rules (permit specificity, PPE detail, LOTO isolation steps, emergency coverage, regulatory citations, stepwise controls, sign-off authority). Typical first-draft score: 55–65/100. After 2–3 iterations: 80+/100 — the quality bar for a procedure that would pass a field HSE audit. This maps directly to the senior HSE engineer reviewing and redlining a junior draft, but at the speed of a job run.
 
 ---
 
