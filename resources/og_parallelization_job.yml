@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    og_parallelization:
+      name: "OG - Parallelization (Compressor Fleet Screening)"
+      description: "Screens all compressors in a gathering network simultaneously using parallel LLM calls, then rolls up a fleet health summary."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: parallelization
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_parallelization_notebook
+          notebook_task:
+            notebook_path: ../databricks/og_parallelization.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
