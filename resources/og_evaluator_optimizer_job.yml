@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    og_evaluator_optimizer:
+      name: "OG - Evaluator-Optimizer (HSE Safe Work Procedure Drafting)"
+      description: "Generator LLM drafts a Safe Work Procedure; evaluator LLM scores it against HSE golden rules and returns structured gaps. Loop iterates until the procedure meets the quality threshold."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: evaluator-optimizer
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_evaluator_optimizer_notebook
+          notebook_task:
+            notebook_path: ../databricks/og_evaluator_optimizer.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
