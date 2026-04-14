@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    og_chaining:
+      name: "OG - Prompt Chaining (SCADA Production Report)"
+      description: "Chains 4 LLM calls to transform raw SCADA telemetry into an executive daily production summary."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: prompt-chaining
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_chaining_notebook
+          notebook_task:
+            notebook_path: ../databricks/og_chaining.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}

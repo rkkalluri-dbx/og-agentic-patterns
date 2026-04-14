@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    evaluator_optimizer:
+      name: "OG - Evaluator-Optimizer (Iterative Refinement Loop)"
+      description: "Generator LLM produces output, evaluator LLM critiques against criteria, loop repeats until PASS. Demonstrated with a coding task."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: evaluator-optimizer
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_evaluator_optimizer_notebook
+          notebook_task:
+            notebook_path: ../databricks/evaluator_optimizer.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}

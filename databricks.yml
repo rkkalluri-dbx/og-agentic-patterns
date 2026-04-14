@@ -1,0 +1,23 @@
+bundle:
+  name: og-agentic-patterns
+
+workspace:
+  host: https://adb-2652197285592368.8.azuredatabricks.net
+
+variables:
+  env:
+    description: Deployment environment
+    default: dev
+
+targets:
+  dev:
+    default: true
+    workspace:
+      root_path: ~/.bundle/${bundle.name}/${var.env}
+
+  prod:
+    workspace:
+      root_path: /Shared/bundles/${bundle.name}/${var.env}
+
+include:
+  - resources/*.yml

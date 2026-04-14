@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    orchestrator_workers:
+      name: "OG - Orchestrator-Workers (Dynamic Well Investigation)"
+      description: "Orchestrator LLM determines at runtime which analyses to run for a product description task, demonstrating dynamic task decomposition."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: orchestrator-workers
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_orchestrator_workers_notebook
+          notebook_task:
+            notebook_path: ../databricks/orchestrator_workers.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
