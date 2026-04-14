@@ -1,0 +1,26 @@
+resources:
+  jobs:
+    og_routing:
+      name: "OG - Routing (Control Room Alarm Triage)"
+      description: "Classifies incoming control room alarms and routes each to a specialist response prompt — wellbore integrity, process safety, equipment fault, environmental, or pipeline integrity."
+      tags:
+        project: og-agentic-patterns
+        managed_by: databricks-asset-bundles
+        pattern: routing
+
+      environments:
+        - environment_key: default
+          spec:
+            client: "1"
+            dependencies:
+              - openai
+
+      tasks:
+        - task_key: run_routing_notebook
+          notebook_task:
+            notebook_path: ../databricks/og_routing.ipynb
+          environment_key: default
+
+      email_notifications:
+        on_failure:
+          - ${workspace.current_user.userName}
