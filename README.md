@@ -10,11 +10,11 @@ Raw O&G operational data — SCADA telemetry, alarm feeds, well logs, incident r
 
 | Pattern | Notebook | O&G Use Case |
 |---|---|---|
-| **Prompt Chaining** | `og_chaining.ipynb` | SCADA telemetry → extract → normalize → flag anomalies → executive summary |
-| **Parallelization** | `basic_workflows.ipynb` | Fleet-wide equipment screening across hundreds of wells simultaneously |
-| **Routing** | `basic_workflows.ipynb` | Control room alarm triage → wellbore integrity / process safety / equipment fault |
-| **Orchestrator-Workers** | `orchestrator_workers.ipynb` | Dynamic well performance investigation — orchestrator decides which analyses to run |
-| **Evaluator-Optimizer** | `evaluator_optimizer.ipynb` | Iterative safe work procedure generation against HSE golden rules |
+| **Prompt Chaining** | [`og_chaining.ipynb`](databricks/og_chaining.ipynb) | SCADA telemetry → extract → normalize → flag anomalies → executive summary |
+| **Parallelization** | [`og_parallelization.ipynb`](databricks/og_parallelization.ipynb) | Fleet-wide compressor health screening across all assets simultaneously |
+| **Routing** | [`og_routing.ipynb`](databricks/og_routing.ipynb) | Control room alarm triage → wellbore integrity / process safety / equipment fault / environmental |
+| **Orchestrator-Workers** | [`og_orchestrator_workers.ipynb`](databricks/og_orchestrator_workers.ipynb) | Dynamic well performance investigation — orchestrator decides which analyses to run at runtime |
+| **Evaluator-Optimizer** | [`og_evaluator_optimizer.ipynb`](databricks/og_evaluator_optimizer.ipynb) | Iterative safe work procedure drafting against 7 HSE golden rules |
 
 ## Setup
 
@@ -22,13 +22,22 @@ Raw O&G operational data — SCADA telemetry, alarm feeds, well logs, incident r
 - Databricks workspace with Foundation Model endpoints enabled
 - Claude Sonnet 4.6 endpoint: `databricks-claude-sonnet-4-6`
 
-### Running on Databricks
-Upload notebooks to your workspace. The `util.py` auto-detects credentials:
+### Running on Databricks (via Asset Bundles)
 
-```python
-# Inside a Databricks notebook — no config needed
-token = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
-host  = spark.conf.get("spark.databricks.workspaceUrl")
+```bash
+# Clone and deploy all jobs
+git clone https://github.com/rkkalluri-dbx/og-agentic-patterns.git
+cd og-agentic-patterns
+
+databricks bundle validate
+databricks bundle deploy
+
+# Run individual patterns
+databricks bundle run og_chaining
+databricks bundle run og_parallelization
+databricks bundle run og_routing
+databricks bundle run og_orchestrator_workers
+databricks bundle run og_evaluator_optimizer
 ```
 
 ### Running Locally (for testing)
@@ -43,12 +52,7 @@ jupyter notebook databricks/og_chaining.ipynb
 
 ## How `util.py` Works
 
-Databricks Foundation Models expose an **OpenAI-compatible** endpoint at:
-```
-POST https://{host}/serving-endpoints/{model}/invocations
-```
-
-`util.py` wraps this with a simple `llm_call()` function that auto-detects whether it's running inside a Databricks notebook or locally:
+Databricks Foundation Models expose an **OpenAI-compatible** endpoint. `util.py` auto-detects credentials whether running inside a Databricks notebook or locally:
 
 ```python
 from util import llm_call
@@ -56,11 +60,13 @@ from util import llm_call
 result = llm_call(
     prompt="Analyze this well data...",
     system_prompt="You are a production engineer.",
-    model="databricks-claude-sonnet-4-6"
+    model="databricks-claude-sonnet-4-6"  # default
 )
 ```
 
-## Available Claude Endpoints (Azure Databricks)
+Inside a Databricks notebook, credentials are fetched automatically via `dbutils` — no manual configuration needed.
+
+## Available Claude Endpoints
 
 | Endpoint | Model |
 |---|---|
@@ -73,23 +79,23 @@ result = llm_call(
 ### Prompt Chaining (`og_chaining.ipynb`)
 Four sequential steps, each building on the last:
 1. **Extract** — faithful transcription from raw SCADA text, no interpretation
-2. **Normalize** — unit conversions (m³→bbl, Mscf→MMscfd) with conversion audit trail  
+2. **Normalize** — unit conversions (m³→bbl, Mscf→MMscfd) with conversion audit trail
 3. **Flag** — compare against field targets, identify anomalies and data quality issues
 4. **Summarize** — executive-ready daily report with prioritized actions
 
 A single prompt attempting all four degrades quality. Chaining keeps each step focused on one reasoning mode.
 
-### Orchestrator-Workers (`orchestrator_workers.ipynb`)
-Unlike simple parallelization, the orchestrator determines *at runtime* which analyses to run based on the specific input. For well performance investigations, the subtasks (decline curve analysis, water cut review, choke correlation) depend on what the data actually shows — you can't predefine them.
+### Parallelization (`og_parallelization.ipynb`)
+Runs the same analysis concurrently across all assets using `ThreadPoolExecutor`. Eight compressors screened simultaneously — same wall time as one. Scales directly to hundreds of wells or facilities.
 
-### Evaluator-Optimizer (`evaluator_optimizer.ipynb`)
-Generator → Evaluator → loop until PASS. In O&G, safety procedures, well programs, and regulatory submissions have hard quality requirements. This automates the review-revise cycle against defined criteria.
+### Routing (`og_routing.ipynb`)
+An LLM classifier first categorizes the incoming alarm signal (5 routes: wellbore integrity, process safety, equipment fault, environmental, pipeline integrity), then a specialized prompt handles it. Each route gets the right response template and escalation path automatically.
 
-## Contributing
-PRs welcome. See issues for planned additions:
-- Parallelization: multi-well production screening notebook
-- Routing: control room alarm triage notebook  
-- Evaluator-Optimizer: HSE safe work procedure notebook
+### Orchestrator-Workers (`og_orchestrator_workers.ipynb`)
+Unlike parallelization, the subtasks are not predefined — they emerge from what the data shows. The orchestrator reads well data and selects 2–4 investigations at runtime (liquid loading, water source, gas coning, decline curve, etc.). Workers execute each independently; a synthesis step produces a root cause recommendation.
+
+### Evaluator-Optimizer (`og_evaluator_optimizer.ipynb`)
+Generator → Evaluator → loop until score ≥ 80/100. The evaluator checks each draft against 7 HSE golden rules (permit specificity, PPE detail, LOTO steps, emergency coverage, regulatory citations, stepwise controls, sign-off authority). Typical progression: 55–65 on the first draft → 80+ after 2–3 iterations.
 
 ## License
 MIT
